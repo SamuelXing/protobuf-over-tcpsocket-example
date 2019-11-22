@@ -58,7 +58,7 @@ int main(int argc, char const *argv[])
 		perror("accept"); 
 		exit(EXIT_FAILURE); 
 	} 
-	read();
+	read(new_socket);
 	return 0; 
 } 
 

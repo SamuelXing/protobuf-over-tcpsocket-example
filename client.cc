@@ -17,11 +17,11 @@
 using namespace std;
 
 void read_file(const char* filename, std::vector<char>& buffer);
-void send(std::vector<char>& buffer);
+void send(int sock, std::vector<char>& buffer);
 
 int main(int argc, char const *argv[]) 
 { 
-	int sock = 0, valread; 
+	int sock = 0; 
 	struct sockaddr_in serv_addr; 
 
 	if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) 
@@ -48,7 +48,7 @@ int main(int argc, char const *argv[])
 	const char* filename = "dataTransfer_2m5.csv";
 	std::vector<char> buffer;
 	read_file(filename, buffer);
-	send(buffer);
+	send(sock, buffer);
 	return 0; 
 } 
 
@@ -69,7 +69,7 @@ void read_file(const char* filename, std::vector<char>& buffer) {
 	return;
 }
 
-void send(std::vector<char>& buffer) {
+void send(int sock, std::vector<char>& buffer) {
 	Messages::Matrix message;
 	message.set_rows(2);
 	message.set_cols(3);
