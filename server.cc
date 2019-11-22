@@ -12,9 +12,12 @@
 #include "messages.pb.h"
 
 #define PORT 9999 
+
+void read(int new_socket);
+
 int main(int argc, char const *argv[]) 
 { 
-	int server_fd, new_socket, valread; 
+	int server_fd, new_socket; 
 	struct sockaddr_in address; 
 	int opt = 1; 
 	int addrlen = sizeof(address); 
@@ -55,7 +58,12 @@ int main(int argc, char const *argv[])
 		perror("accept"); 
 		exit(EXIT_FAILURE); 
 	} 
+	read();
+	return 0; 
+} 
 
+void read(int new_socket) {
+	int valread;
 	char buffer_header[5] = {0}; 
 	valread = read( new_socket , buffer_header, 5);
 	int msg_size;
@@ -72,6 +80,7 @@ int main(int argc, char const *argv[])
 	}
 	std::cout << "rows: " << message.rows() << std::endl;
 	std::cout << "cols: " << message.cols() << std::endl;
-	return 0; 
-} 
+	
+	free(buffer_msg);
+}
 

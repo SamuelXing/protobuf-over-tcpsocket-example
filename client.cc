@@ -16,6 +16,9 @@
 
 using namespace std;
 
+void read_file(const char* filename, std::vector<char>& buffer);
+void send(std::vector<char>& buffer);
+
 int main(int argc, char const *argv[]) 
 { 
 	int sock = 0, valread; 
@@ -42,7 +45,15 @@ int main(int argc, char const *argv[])
 		printf("\nConnection Failed \n"); 
 		return -1; 
 	} 
-	const std::string inputFile = "dataTransfer_2m5.csv";	
+	const char* filename = "dataTransfer_2m5.csv";
+	std::vector<char> buffer;
+	read_file(filename, buffer);
+	send(buffer);
+	return 0; 
+} 
+
+void read_file(const char* filename, std::vector<char>& buffer) {
+	const std::string inputFile(filename);	
 	std::ifstream inFile(inputFile, std::ios_base::binary);
 
 	inFile.seekg(0, std::ios_base::end);
@@ -50,14 +61,15 @@ int main(int argc, char const *argv[])
 	inFile.seekg(0, std::ios_base::beg);
 	std::cout << "origin bytes: " << length << std::endl;
 
-	std::vector<char> buffer;
 	buffer.reserve(length);
-	std::copy( std::istreambuf_iterator<char>(inFile),
-	           std::istreambuf_iterator<char>(),
-		   std::back_inserter(buffer) );
-
+	std::copy(std::istreambuf_iterator<char>(inFile),
+	    std::istreambuf_iterator<char>(),
+		std::back_inserter(buffer));
 	
-	// copy data to proto object
+	return;
+}
+
+void send(std::vector<char>& buffer) {
 	Messages::Matrix message;
 	message.set_rows(2);
 	message.set_cols(3);
@@ -72,9 +84,6 @@ int main(int argc, char const *argv[])
 	send(sock, buffer_header, 5, 0);
 	send(sock, buffer_msg.c_str(), buffer_msg.length(), 0 );
 	std::cout << "msg sent!\n";
-	// char buffer[1024] = {0}; 
-	// valread = read( sock , buffer, 1024); 
- 	// printf("%s\n",buffer ); 
-	return 0; 
-} 
+}
+
 
