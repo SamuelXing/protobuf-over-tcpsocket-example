@@ -77,12 +77,18 @@ void send(int sock, std::vector<char>& buffer) {
 	std::string buffer_msg;
 	message.SerializeToString(&buffer_msg);
 	std::cout << "after serialized bytes: " << buffer_msg.length() << std::endl;
-	int size = buffer_msg.length();
-	char buffer_header[5];
-	memset(buffer_header, '\0', 5);
-	memcpy(buffer_header, (char*) &size, sizeof(int));
-	send(sock, buffer_header, 5, 0);
-	send(sock, buffer_msg.c_str(), buffer_msg.length(), 0 );
+
+	char* buffer = (char*)malloc(sizeof(char)*buffer_msg.length() + 6);
+	memset(buffer, '\0', sizeof(char)*buffer_msg.length() + 6);
+	memcpy(buffer, buffer_msg.length(), sizeof(int));
+	memcpy(buffer+sizeof(int)+1, buffer_msg.c_str(), buffer_msg.length());
+	send(sock, buffer, sizeof(char)*buffer_msg.length() + 6, 0);
+	// int size = buffer_msg.length();
+	// char buffer_header[5];
+	// memset(buffer_header, '\0', 5);
+	// memcpy(buffer_header, (char*) &size, sizeof(int));
+	// send(sock, buffer_header, 5, 0);
+	// send(sock, buffer_msg.c_str(), buffer_msg.length(), 0 );
 	std::cout << "msg sent!\n";
 }
 
