@@ -1,0 +1,11 @@
+syntax = "proto2";
+package Messages;
+
+message Matrix {
+    required uint32 rows = 1;
+    required uint32 cols = 2;
+    repeated string stringdata = 3;
+    repeated uint32 intdata = 4;
+    repeated double doubledata = 5;
+}
+
