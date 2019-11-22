@@ -49,6 +49,7 @@ int main(int argc, char const *argv[])
 	std::vector<char> buffer;
 	read_file(filename, buffer);
 	send(sock, buffer);
+	send(sock, buffer);
 	return 0; 
 } 
 
@@ -69,26 +70,29 @@ void read_file(const char* filename, std::vector<char>& buffer) {
 	return;
 }
 
-void send(int sock, std::vector<char>& buffer) {
+void send(int sock, std::vector<char>& file_buffer) {
 	Messages::Matrix message;
 	message.set_rows(2);
 	message.set_cols(3);
-	message.add_stringdata(std::string(buffer.begin(), buffer.end()).c_str(), buffer.size());
+	message.add_stringdata(std::string(file_buffer.begin(), file_buffer.end()).c_str(), file_buffer.size());
 	std::string buffer_msg;
 	message.SerializeToString(&buffer_msg);
 	std::cout << "after serialized bytes: " << buffer_msg.length() << std::endl;
 
+/*
 	char* buffer = (char*)malloc(sizeof(char)*buffer_msg.length() + 6);
-	memset(buffer, '\0', sizeof(char)*buffer_msg.length() + 6);
-	memcpy(buffer, buffer_msg.length(), sizeof(int));
-	memcpy(buffer+sizeof(int)+1, buffer_msg.c_str(), buffer_msg.length());
-	send(sock, buffer, sizeof(char)*buffer_msg.length() + 6, 0);
-	// int size = buffer_msg.length();
-	// char buffer_header[5];
-	// memset(buffer_header, '\0', 5);
-	// memcpy(buffer_header, (char*) &size, sizeof(int));
-	// send(sock, buffer_header, 5, 0);
-	// send(sock, buffer_msg.c_str(), buffer_msg.length(), 0 );
+	int buffer_msg_len = buffer_msg.length();
+	memset(buffer, '\0', sizeof(char)*buffer_msg_len + 6);
+	memcpy(buffer, &buffer_msg_len, sizeof(int));
+	memcpy(buffer+sizeof(int)+1, buffer_msg.c_str(), buffer_msg_len);
+	send(sock, buffer, sizeof(char)*buffer_msg_len + 6, 0);
+*/
+	int size = buffer_msg.length();
+	char buffer_header[5];
+	memset(buffer_header, '\0', 5);
+	memcpy(buffer_header, (char*) &size, sizeof(int));
+	send(sock, buffer_header, 5, 0);
+	send(sock, buffer_msg.c_str(), buffer_msg.length(), 0 );
 	std::cout << "msg sent!\n";
 }
 
