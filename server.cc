@@ -9,6 +9,7 @@
 #include <vector>
 #include <string>
 #include <algorithm>
+#include <fstream>
 #include "messages.pb.h"
 
 #define PORT 9999 
@@ -59,7 +60,7 @@ int main(int argc, char const *argv[])
 		exit(EXIT_FAILURE); 
 	} 
 	read(new_socket);
-	read(new_socket);
+	send(new_socket, "received!", 11, 0);
 	return 0; 
 } 
 
@@ -72,16 +73,26 @@ void read(int new_socket) {
 	std::cout << "buffer size: " << msg_size << std::endl;
 	char* buffer_msg = (char*)malloc(msg_size*sizeof(char));
 	memset(buffer_msg, '\0', sizeof(char)*msg_size);
-	valread = read( new_socket , buffer_msg, msg_size);
+	int length = 0;
+	for(length = 0; msg_size != 0; length += valread) {
+		valread = read( new_socket , buffer_msg+length, msg_size);
+		msg_size -= valread;
+	}
+	std::cout << "msg length: " << length << std::endl;
 	std::cout << "msg received!" << std::endl;
 	Messages::Matrix message;
-	if (!message.ParseFromString(std::string(buffer_msg, msg_size)) || !message.IsInitialized()) {
+	if (!message.ParseFromString(std::string(buffer_msg, length)) || !message.IsInitialized()) {
 		std::cout << "msg err" << std::endl;
 		exit(-1);
 	}
 	std::cout << "rows: " << message.rows() << std::endl;
 	std::cout << "cols: " << message.cols() << std::endl;
-	
+	//std::string msg_content = message.stringdata() ;
+	//std::cout << "data size: " << msg_content.size() << std::endl;
+	//std::cout << "msg content: " << message.stringdata(0) << std::endl;
+	std::ofstream out("output.txt");
+	out << message.stringdata(0);
+	out.close();	
 	free(buffer_msg);
 }
 
