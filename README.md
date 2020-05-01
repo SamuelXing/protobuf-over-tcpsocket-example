@@ -47,18 +47,9 @@ g++5, protobuf(proto2), cmake3.2, ubuntu 16.04
 ## Known Issue
 - [google-protobuf-maximum-size](https://stackoverflow.com/questions/34128872/google-protobuf-maximum-size)
 
+## Reference
+- [Socket Programming in C/C++](https://www.geeksforgeeks.org/socket-programming-cc/)
+- [protobuf explain](https://blog.usejournal.com/what-the-hell-is-protobuf-4aff084c5db4)
+
 ## LISCENSE
 MIT
-
-Protobuf-over-tcp-socket-example.
-————————
-Cmake update, proto compile. proto msg demo.
-Build script.
-Known issue. Protobuf max size.
-Comments.code 
-Searching Tag.
-CI/CD status.
-Reference. Socket programming. Protobuf
-Code structure.
-formatting tool
-————————
