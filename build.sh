@@ -2,5 +2,8 @@
 
 export CC=/usr/bin/gcc-5
 export CXX=/usr/bin/g++-5
-cmake .
+
+mkdir build
+cd build
+cmake ..
 make -j
