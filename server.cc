@@ -18,7 +18,7 @@
 
 using namespace std;
 
-// This function reads protobuf msg from socket to a string
+// This function reads a serialized protobuf msg from socket
 void read(int new_socket, string& msg);
 
 // Iterates though all people in the AddressBook and prints info about them.

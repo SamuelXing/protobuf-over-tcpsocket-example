@@ -20,7 +20,7 @@
 
 using namespace std;
 
-// This function sends a char buffer to server
+// This function sends a serialized proto msg to server
 void send(int sock, string msg);
 
 // This function will fill in a Person.
