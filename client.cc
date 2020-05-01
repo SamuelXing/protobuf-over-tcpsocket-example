@@ -9,8 +9,10 @@
 #include <vector>
 #include <string>
 #include <algorithm>
+#include <utility>
 #include <fstream>
 #include <chrono>
+#include <ctime>
 
 #include "messages.pb.h"
 
@@ -18,11 +20,19 @@
 
 using namespace std;
 
-void read_file(const char* filename, std::vector<char>& buffer);
-void send(int sock, std::vector<char>& buffer);
+// This function sends a char buffer to server
+void send(int sock, string msg);
 
+// This function will fill in a Person.
+void generate_a_record(Messages::Person* person); 
+
+// main 
 int main(int argc, char const *argv[]) 
 { 
+	// Verify that the version of the library that we linked against is
+  	// compatible with the version of the headers we compiled against.
+  	GOOGLE_PROTOBUF_VERIFY_VERSION;
+	
 	int sock = 0; 
 	struct sockaddr_in serv_addr; 
 
@@ -36,7 +46,7 @@ int main(int argc, char const *argv[])
 	serv_addr.sin_port = htons(PORT); 
 	
 	// Convert IPv4 and IPv6 addresses from text to binary form 
-	if(inet_pton(AF_INET, "50.97.250.146", &serv_addr.sin_addr)<=0) 
+	if(inet_pton(AF_INET, "0.0.0.0", &serv_addr.sin_addr)<=0) 
 	{ 
 		printf("\nInvalid address/ Address not supported \n"); 
 		return -1; 
@@ -47,66 +57,45 @@ int main(int argc, char const *argv[])
 		printf("\nConnection Failed \n"); 
 		return -1; 
 	} 
-	//const char* filename = "dataTransfer_1m.csv";
-	const char* filename = "dataTransfer_2m5.csv";
-	//const char* filename = "test.txt";
-	std::vector<char> buffer;
-	read_file(filename, buffer);
-	char received[12] = {0};
-	auto t1 = std::chrono::high_resolution_clock::now();
-	send(sock, buffer);
-	memset(received, '\0', 12);
-	read(sock, received, 12);
-	std::cout << received << std::endl;
-	auto t2 = std::chrono::high_resolution_clock::now();
-	auto duration = std::chrono::duration_cast<std::chrono::microseconds>( t2 - t1 ).count();
-	std::cout << "time: "<< duration << std::endl;
+
+	Messages::AddressBook address_book;
+	// Add an address.
+  	generate_a_record(address_book.add_people());
+	// Write the new address book to string.
+	std::string address_book_str;
+	{
+		if (!address_book.SerializeToString(&address_book_str)) {
+		cerr << "Failed to serialize address book." << endl;
+		return -1;
+		}
+  	}
+	send(sock, address_book_str);
+
 	return 0; 
 } 
 
-void read_file(const char* filename, std::vector<char>& buffer) {
-	const std::string inputFile(filename);	
-	std::ifstream inFile(inputFile, std::ios_base::binary);
-
-	inFile.seekg(0, std::ios_base::end);
-	size_t length = inFile.tellg();
-	inFile.seekg(0, std::ios_base::beg);
-	std::cout << "origin bytes: " << length << std::endl;
-
-	buffer.reserve(length);
-	std::copy(std::istreambuf_iterator<char>(inFile),
-	    std::istreambuf_iterator<char>(),
-		std::back_inserter(buffer));
-	
-	return;
+void send(int sock, string msg) {
+	size_t msg_size = msg.length();
+	char header[sizeof(size_t)];
+	memset(header, '\0', sizeof(size_t));
+	memcpy(header, (char*) &msg_size, sizeof(size_t));
+	send(sock, header, sizeof(size_t), 0);
+	send(sock, msg.c_str(), msg_size, 0 );
+	cout << "msg sent to server...\n";
 }
 
-void send(int sock, std::vector<char>& file_buffer) {
-	Messages::Matrix message;
-	message.set_rows(2);
-	message.set_cols(3);
-	std::string msg2send(file_buffer.begin(), file_buffer.end());
-	std::cout << "msg2send size: " << msg2send.size() << std::endl;
-	message.add_stringdata(msg2send.c_str());
-	std::string buffer_msg;
-	message.SerializeToString(&buffer_msg);
-	std::cout << "after serialized bytes: " << buffer_msg.length() << std::endl;
-
-/*
-	char* buffer = (char*)malloc(sizeof(char)*buffer_msg.length() + 6);
-	int buffer_msg_len = buffer_msg.length();
-	memset(buffer, '\0', sizeof(char)*buffer_msg_len + 6);
-	memcpy(buffer, &buffer_msg_len, sizeof(int));
-	memcpy(buffer+sizeof(int)+1, buffer_msg.c_str(), buffer_msg_len);
-	send(sock, buffer, sizeof(char)*buffer_msg_len + 6, 0);
-*/
-	int size = buffer_msg.length();
-	char buffer_header[5];
-	memset(buffer_header, '\0', 5);
-	memcpy(buffer_header, (char*) &size, sizeof(int));
-	send(sock, buffer_header, 5, 0);
-	send(sock, buffer_msg.c_str(), buffer_msg.length(), 0 );
-	std::cout << "msg sent!\n";
+void generate_a_record(Messages::Person* person) {
+  int id = 0;
+  person->set_id(id);
+  string name = "John Doe";
+  person->set_name(name);
+  string email = "JohnDoe@gmail.com";
+  person->set_email(email);
+  string number = "032-9898-8765";
+  Messages::Person::PhoneNumber* phone_number = person->add_phones();
+  phone_number->set_number(number);
+  phone_number->set_type(Messages::Person::MOBILE);
 }
+
 
 

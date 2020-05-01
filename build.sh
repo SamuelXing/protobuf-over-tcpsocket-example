@@ -7,3 +7,7 @@ mkdir build
 cd build
 cmake ..
 make -j
+
+cp client ../
+cp server ../
+cd ..

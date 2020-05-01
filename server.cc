@@ -9,13 +9,22 @@
 #include <vector>
 #include <string>
 #include <algorithm>
+#include <utility>
 #include <fstream>
+
 #include "messages.pb.h"
 
 #define PORT 9999 
 
-void read(int new_socket);
+using namespace std;
 
+// This function reads protobuf msg from socket to a string
+void read(int new_socket, string& msg);
+
+// Iterates though all people in the AddressBook and prints info about them.
+void list_people(const Messages::AddressBook& address_book);
+
+// main
 int main(int argc, char const *argv[]) 
 { 
 	int server_fd, new_socket; 
@@ -48,29 +57,42 @@ int main(int argc, char const *argv[])
 		perror("bind failed"); 
 		exit(EXIT_FAILURE); 
 	} 
+	cout << "server start listening on "<< PORT <<"...\n";
 	if (listen(server_fd, 3) < 0) 
 	{ 
 		perror("listen"); 
 		exit(EXIT_FAILURE); 
 	} 
-	if ((new_socket = accept(server_fd, (struct sockaddr *)&address, 
-					(socklen_t*)&addrlen))<0) 
+	while ((new_socket = accept(server_fd, (struct sockaddr *)&address, 
+					(socklen_t*)&addrlen))) 
 	{ 
-		perror("accept"); 
-		exit(EXIT_FAILURE); 
+		if(new_socket < 0) {
+			perror("accept"); 
+			exit(EXIT_FAILURE); 
+		} else
+		{
+			string message;
+			read(new_socket, message);
+			Messages::AddressBook address_book;
+			if (!address_book.ParseFromString(message)) {
+				cerr << "Failed to parse address book." << endl;
+				return -1;
+			}
+			list_people(address_book);
+		}
 	} 
-	read(new_socket);
-	send(new_socket, "received!", 11, 0);
+
 	return 0; 
 } 
 
-void read(int new_socket) {
+void read(int new_socket, string& msg) {
 	int valread;
-	char buffer_header[5] = {0}; 
-	valread = read( new_socket , buffer_header, 5);
-	int msg_size;
-	memcpy(&msg_size, buffer_header, 4);
-	std::cout << "buffer size: " << msg_size << std::endl;
+	char buffer_header[sizeof(size_t)] = {0}; 
+	valread = read( new_socket , buffer_header, sizeof(size_t));
+
+	size_t msg_size;
+	memcpy(&msg_size, buffer_header, sizeof(size_t));
+
 	char* buffer_msg = (char*)malloc(msg_size*sizeof(char));
 	memset(buffer_msg, '\0', sizeof(char)*msg_size);
 	int length = 0;
@@ -78,21 +100,40 @@ void read(int new_socket) {
 		valread = read( new_socket , buffer_msg+length, msg_size);
 		msg_size -= valread;
 	}
-	std::cout << "msg length: " << length << std::endl;
-	std::cout << "msg received!" << std::endl;
-	Messages::Matrix message;
-	if (!message.ParseFromString(std::string(buffer_msg, length)) || !message.IsInitialized()) {
-		std::cout << "msg err" << std::endl;
-		exit(-1);
-	}
-	std::cout << "rows: " << message.rows() << std::endl;
-	std::cout << "cols: " << message.cols() << std::endl;
-	//std::string msg_content = message.stringdata() ;
-	//std::cout << "data size: " << msg_content.size() << std::endl;
-	//std::cout << "msg content: " << message.stringdata(0) << std::endl;
-	std::ofstream out("output.txt");
-	out << message.stringdata(0);
-	out.close();	
+
+	msg = std::string(buffer_msg, length);
 	free(buffer_msg);
 }
 
+void list_people(const Messages::AddressBook& address_book) {
+  for (int i = 0; i < address_book.people_size(); i++) {
+    const Messages::Person& person = address_book.people(i);
+
+    cout << "Person ID: " << person.id() << endl;
+    cout << "  Name: " << person.name() << endl;
+    if (person.email() != "") {
+      cout << "  E-mail address: " << person.email() << endl;
+    }
+
+    for (int j = 0; j < person.phones_size(); j++) {
+      const Messages::Person::PhoneNumber& phone_number = person.phones(j);
+
+      switch (phone_number.type()) {
+        case Messages::Person::MOBILE:
+          cout << "  Mobile phone #: ";
+          break;
+        case Messages::Person::HOME:
+          cout << "  Home phone #: ";
+          break;
+        case Messages::Person::WORK:
+          cout << "  Work phone #: ";
+          break;
+        default:
+          cout << "  Unknown phone #: ";
+          break;
+      }
+      cout << phone_number.number() << endl;
+    }
+    
+  }
+}

@@ -1,19 +1,16 @@
 cmake_minimum_required (VERSION 3.2)
-project(protobuf-transmission)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c++0x -Wall -I/usr/local/include")
+project(protobuf_over_tcp_socket)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wall")
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED on)
 set(PROJECT_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
 
-include_directories(${PROJECT_ROOT})
-find_package(Protobuf REQUIRED)
+add_subdirectory(proto)
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/proto)
 
-add_library(protobuf-transmission ${PROJECT_ROOT}/messages.pb.cc)
-target_link_libraries(protobuf-transmission ${PROTOBUF_LIBRARIES} ${CPP_SHARED_LIBRARIES})
+add_executable(client ${PROJECT_ROOT}/client.cc)
+target_link_libraries (client proto_msg ${CPP_SHARED_LIBRARIES})
 
-add_executable(client client.cc)
-target_link_libraries (client protobuf-transmission ${CPP_SHARED_LIBRARIES})
-
-add_executable(server server.cc)
-target_link_libraries (server protobuf-transmission ${CPP_SHARED_LIBRARIES})
+add_executable(server ${PROJECT_ROOT}/server.cc)
+target_link_libraries (server proto_msg ${CPP_SHARED_LIBRARIES})
