@@ -1,4 +1,7 @@
 # protobuf-over-tcpsocket-example
+
+![C/C++ CI](https://github.com/SamuelXing/protobuf-over-tcpsocket-example/workflows/C/C++%20CI/badge.svg)
+
 An example of transmitting [protobuf](https://developers.google.com/protocol-buffers/docs/cpptutorial) messages over TCP sockets. Below is the proto using in this example.
 
 ```

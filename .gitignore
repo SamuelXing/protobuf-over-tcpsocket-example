@@ -1,6 +1,5 @@
 *.csv
 .vscode
 build
-*.txt
 client
 server
