@@ -44,9 +44,6 @@ g++5, protobuf(proto2), cmake3.2, ubuntu 16.04
 ./client (another terminal)
 ```
 
-## Known Issue
-- [google-protobuf-maximum-size](https://stackoverflow.com/questions/34128872/google-protobuf-maximum-size)
-
 ## Reference
 - [Socket Programming in C/C++](https://www.geeksforgeeks.org/socket-programming-cc/)
 - [protobuf explain](https://blog.usejournal.com/what-the-hell-is-protobuf-4aff084c5db4)
